@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "FormBot AI Filler",
+  "version": "1.1",
+  "description": "Auto-fills any web form using details saved in your FormBot AI Profile.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "http://localhost:3000/*"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

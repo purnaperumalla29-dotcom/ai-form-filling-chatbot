@@ -1,0 +1,31 @@
+{
+  "name": "ai-form-filler-chatbot",
+  "version": "1.0.0",
+  "description": "AI-Powered Automatic Form Filling Chatbot for MCA Final Year Project",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.11.0",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.2.0",
+    "mysql2": "^3.9.8",
+    "pdf-parse": "^2.4.5",
+    "pdfkit": "^0.15.0",
+    "selenium-webdriver": "^4.21.0"
+  },
+  "keywords": [
+    "chatbot",
+    "selenium",
+    "gemini-api",
+    "form-filler",
+    "mca-project"
+  ],
+  "author": "",
+  "license": "ISC"
+}

@@ -1,0 +1,244 @@
+/* Scoped styles for injected Voice-Based Form Filling Assistant Widget */
+
+#formbot-mic-float {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 9999999;
+}
+
+#formbot-mic-float:hover {
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.6);
+}
+
+#formbot-mic-float.recording {
+  animation: extMicPulse 1.5s infinite ease-in-out;
+  background: #ef4444;
+}
+
+@keyframes extMicPulse {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
+  70% { box-shadow: 0 0 0 18px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+#formbot-side-panel {
+  position: fixed;
+  top: 20px;
+  right: -360px;
+  width: 330px;
+  height: calc(100vh - 40px);
+  background: rgba(15, 23, 42, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  z-index: 9999999;
+  transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: system-ui, -apple-system, sans-serif;
+  color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+#formbot-side-panel.open {
+  right: 20px;
+}
+
+.formbot-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+}
+
+.formbot-header-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #38bdf8;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.formbot-close-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.formbot-close-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+}
+
+.formbot-section-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  margin-top: 10px;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.formbot-transcript-box {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  padding: 10px;
+  height: 80px;
+  overflow-y: auto;
+  font-size: 0.85rem;
+  color: #cbd5e1;
+  line-height: 1.4;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+}
+
+.formbot-preview-container {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 16px;
+  padding-right: 4px;
+}
+
+.formbot-preview-row {
+  margin-bottom: 10px;
+}
+
+.formbot-label-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.formbot-field-label {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.formbot-confidence-badge {
+  font-size: 0.65rem;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.formbot-confidence-badge.high {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+.formbot-confidence-badge.medium {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+
+.formbot-confidence-badge.low {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.formbot-input-field {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  color: white;
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  box-sizing: border-box;
+}
+
+.formbot-input-field:focus {
+  outline: none;
+  border-color: #38bdf8;
+}
+
+.formbot-button-group {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.formbot-btn {
+  flex: 1;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: opacity 0.2s;
+}
+
+.formbot-btn:hover {
+  opacity: 0.9;
+}
+
+.formbot-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.formbot-btn-primary {
+  background: #38bdf8;
+  color: #0f172a;
+}
+
+.formbot-btn-danger {
+  background: #ef4444;
+  color: white;
+}
+
+.formbot-btn-success {
+  background: #10b981;
+  color: white;
+}
+
+.formbot-btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Filled highlight keyframe */
+@keyframes formbotFillHighlight {
+  0% { outline: 3px solid #38bdf8; box-shadow: 0 0 15px rgba(56, 189, 248, 0.6); }
+  50% { outline: 3px solid #10b981; box-shadow: 0 0 15px rgba(16, 185, 129, 0.6); }
+  100% { outline: none; box-shadow: none; }
+}
+
+.formbot-filled-highlight {
+  animation: formbotFillHighlight 2.5s ease-out;
+}

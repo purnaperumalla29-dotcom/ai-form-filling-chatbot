@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI-Powered Automatic Form Filling Chatbot</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <!-- Custom Style -->
+  <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+
+  <!-- 1. AUTHENTICATION OVERLAY -->
+  <div id="authOverlay">
+    <div class="auth-container glass-panel">
+      <div class="text-center mb-4">
+        <h2 class="auth-logo"><i class="fa-solid fa-robot me-2"></i>FormBot AI</h2>
+        <p class="text-muted mt-2" id="authSubTitle">Welcome, please sign in to continue</p>
+      </div>
+
+      <!-- Login Form -->
+      <form id="loginForm">
+        <div class="mb-3">
+          <label for="loginEmail" class="form-label">Email Address</label>
+          <input type="email" class="form-control" id="loginEmail" placeholder="name@domain.com" required>
+        </div>
+        <div class="mb-3">
+          <label for="loginPassword" class="form-label">Password</label>
+          <input type="password" class="form-control" id="loginPassword" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn btn-primary-custom w-100 py-2.5 mt-2">Sign In</button>
+        <p class="text-center mt-3 text-muted small">
+          New user? <a href="#" id="showRegisterBtn" class="text-decoration-none text-accent">Create an account</a>
+        </p>
+      </form>
+
+      <!-- Register Form (Hidden by Default) -->
+      <form id="registerForm" class="d-none">
+        <div class="mb-3">
+          <label for="registerUsername" class="form-label">Username</label>
+          <input type="text" class="form-control" id="registerUsername" placeholder="johndoe" required>
+        </div>
+        <div class="mb-3">
+          <label for="registerEmail" class="form-label">Email Address</label>
+          <input type="email" class="form-control" id="registerEmail" placeholder="name@domain.com" required>
+        </div>
+        <div class="mb-3">
+          <label for="registerPassword" class="form-label">Password</label>
+          <input type="password" class="form-control" id="registerPassword" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn btn-primary-custom w-100 py-2.5 mt-2">Sign Up</button>
+        <p class="text-center mt-3 text-muted small">
+          Already have an account? <a href="#" id="showLoginBtn" class="text-decoration-none text-accent">Sign In</a>
+        </p>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. MAIN APPLICATION WRAPPER -->
+  <div class="app-wrapper d-none" id="appWrapper">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="app-sidebar">
+      <div>
+        <div class="sidebar-logo">
+          <i class="fa-solid fa-robot-astronomy"></i>
+          <span>FormBot AI</span>
+        </div>
+        
+        <ul class="nav-menu">
+          <li>
+            <button class="nav-item-btn active" data-target="chatView" id="navChatBtn">
+              <i class="fa-solid fa-comment-dots"></i> Chat Assistant
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-target="formsView" id="navFormsBtn">
+              <i class="fa-solid fa-file-invoice"></i> Form Templates
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-target="documentsView" id="navDocumentsBtn">
+              <i class="fa-solid fa-file-arrow-up"></i> Upload Document
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-target="voiceView" id="navVoiceBtn">
+              <i class="fa-solid fa-microphone"></i> Voice Input
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-target="manualView" id="navManualBtn">
+              <i class="fa-solid fa-keyboard"></i> Manual Entry
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn d-none" data-target="adminView" id="navAdminBtn">
+              <i class="fa-solid fa-gauge-high"></i> Admin Dashboard
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <!-- User Info & Logout -->
+      <div class="d-flex flex-column gap-3">
+        <div class="user-profile">
+          <div class="user-avatar" id="userAvatar">U</div>
+          <div class="overflow-hidden">
+            <h6 class="mb-0 text-truncate" id="profileUsername">Username</h6>
+            <small class="text-muted text-truncate d-block" id="profileEmail">email@domain.com</small>
+          </div>
+        </div>
+        <button class="btn btn-outline-danger btn-sm w-100 py-2" id="logoutBtn">
+          <i class="fa-solid fa-right-from-bracket me-2"></i> Log Out
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Panel -->
+    <main class="app-content">
+      
+      <!-- Top header bar -->
+      <header class="content-header">
+        <h4 class="mb-0" id="currentViewTitle">Chat Assistant</h4>
+        <div class="d-flex align-items-center gap-3">
+          <span class="badge bg-secondary py-2 px-3" id="activeFormBadge">Form: None selected</span>
+        </div>
+      </header>
+
+      <!-- VIEW 1: CHATBOT ASSISTANT (Dual Panel Grid) -->
+      <section class="view-section active" id="chatView">
+        <!-- Left Side: Chat Area -->
+        <div class="chat-column">
+          <div class="chat-messages-container" id="chatMessages">
+            <!-- Bot message -->
+            <div class="chat-bubble bot">
+              Hello! I am your AI Form Filling Assistant. Please select a form template from the <b>Form Templates</b> tab, or chat with me to get started. I will automatically extract your details as we speak.
+            </div>
+          </div>
+          
+          <!-- Typing indicator -->
+          <div class="typing-indicator d-none" id="typingIndicator" style="margin-left: 25px;">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+          </div>
+          
+          <!-- Voice Recognition Status & Live Preview Panel -->
+          <div class="voice-status-panel d-none mb-3 p-3 glass-panel" id="voiceStatusPanel" style="border-left: 4px solid var(--danger-color); animation: slideDown 0.3s ease-out;">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span id="voiceStatusText" class="text-accent small fw-bold"><i class="fa-solid fa-microphone fa-beat text-danger me-2"></i>Listening...</span>
+              <span id="voiceConfidence" class="badge bg-secondary text-white font-monospace" style="font-size: 0.75rem;">Confidence: 0%</span>
+            </div>
+            
+            <!-- Real-time / recognized text area (editable) -->
+            <div class="mb-2">
+              <label class="text-muted small mb-1" style="font-size: 0.75rem;">Recognized Speech (Click to edit if needed):</label>
+              <input type="text" id="voiceRecognizedInput" class="form-control form-control-sm bg-dark border-secondary text-white py-1.5" style="border-radius: 6px; box-shadow: none;">
+            </div>
+
+            <!-- Translation preview (only shown if not English) -->
+            <div id="voiceTranslationWrapper" class="mb-2 d-none">
+              <label class="text-muted small mb-1" style="font-size: 0.75rem;">Translated English Text:</label>
+              <div id="voiceTranslationText" class="text-white small bg-dark p-2 border border-secondary" style="border-radius: 6px; font-style: italic;"></div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-2">
+              <button class="btn btn-sm btn-outline-light" id="voiceCancelBtn"><i class="fa-solid fa-xmark me-1"></i>Cancel</button>
+              <button class="btn btn-sm btn-primary-custom" id="voiceSendBtn"><i class="fa-solid fa-check me-1"></i>Confirm & Fill</button>
+            </div>
+          </div>
+
+          <div class="chat-input-bar">
+            <button class="btn btn-outline-secondary" id="clearChatBtn" title="Clear Chat History">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+            <!-- Language selector dropdown -->
+            <select class="form-select bg-dark border-secondary text-white fw-bold" id="voiceLangSelect" style="width: auto; max-width: 140px; border-radius: 8px; font-size: 0.85rem;" title="Select Speech Language">
+              <option value="en-US">English</option>
+              <option value="te-IN">Telugu (తెలుగు)</option>
+              <option value="hi-IN">Hindi (हिन्दी)</option>
+              <option value="ta-IN">Tamil (தமிழ்)</option>
+            </select>
+            <input type="text" class="form-control" id="chatInput" placeholder="Type your message here... (e.g. My name is John Doe)" disabled>
+            <!-- Microphone input button -->
+            <button class="btn btn-danger-custom px-3" id="voiceMicBtn" title="Start Voice Assistant" disabled>
+              <i class="fa-solid fa-microphone"></i>
+            </button>
+            <button class="btn btn-primary-custom px-4" id="sendChatBtn" disabled>
+              <i class="fa-solid fa-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Side: Real-time Data Preview -->
+        <div class="preview-column">
+          <div class="preview-header">
+            <h5 class="mb-0 text-truncate"><i class="fa-solid fa-list-check me-2 text-accent"></i>Live Extraction</h5>
+            <span class="badge bg-success" id="progressPercentage">0% Completed</span>
+          </div>
+
+          <div class="preview-body">
+            <div class="progress-bar-container">
+              <div class="progress-fill" id="progressFillBar"></div>
+            </div>
+            
+            <div id="fieldsPreviewContainer">
+              <div class="text-center text-muted py-5">
+                <i class="fa-solid fa-clipboard-question display-4 mb-3"></i>
+                <p>No form selected. Go to the <b>Form Templates</b> tab and select a form to start dynamic auto-filling.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="preview-footer d-flex gap-2">
+            <button class="btn btn-outline-light w-50 py-2.5" id="downloadReportBtn" disabled>
+              <i class="fa-solid fa-file-pdf me-2 text-danger"></i>Download PDF
+            </button>
+            <button class="btn btn-primary-custom w-50 py-2.5" id="triggerAutofillBtn" disabled>
+              <i class="fa-solid fa-bolt me-2"></i>Auto-Fill Form
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 2: FORM TEMPLATES VIEW -->
+      <section class="view-section" id="formsView">
+        <div class="row g-4" id="formsGridContainer">
+          <!-- Dynamically loaded form templates will be rendered here -->
+        </div>
+      </section>
+
+      <!-- VIEW 3: ADMIN DASHBOARD VIEW -->
+      <section class="view-section" id="adminView">
+        <!-- Dashboard stats cards -->
+        <div class="row g-4 mb-5">
+          <div class="col-md-3">
+            <div class="glass-panel metric-card">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="text-muted">Total Users</span>
+                <i class="fa-solid fa-users text-primary fs-4"></i>
+              </div>
+              <div class="metric-value" id="adminTotalUsers">0</div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="glass-panel metric-card">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="text-muted">Form Submissions</span>
+                <i class="fa-solid fa-file-circle-check text-success fs-4"></i>
+              </div>
+              <div class="metric-value" id="adminTotalSubmissions">0</div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="glass-panel metric-card">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="text-muted">Total Chat Messages</span>
+                <i class="fa-solid fa-message text-warning fs-4"></i>
+              </div>
+              <div class="metric-value" id="adminTotalMessages">0</div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="glass-panel metric-card">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="text-muted">Form Templates</span>
+                <i class="fa-solid fa-clipboard-list text-info fs-4"></i>
+              </div>
+              <div class="metric-value" id="adminTotalForms">0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chart Section -->
+        <div class="row g-4 mb-4">
+          <div class="col-12">
+            <div class="glass-panel p-4">
+              <h5 class="mb-3"><i class="fa-solid fa-chart-pie me-2 text-accent"></i>Form Submission Analytics</h5>
+              <div style="height: 220px; position: relative;">
+                <canvas id="adminChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-4">
+          <!-- Recent submissions -->
+          <div class="col-12 col-xl-8">
+            <div class="glass-panel p-4 h-100">
+              <h5 class="mb-4"><i class="fa-solid fa-clock-rotate-left me-2 text-accent"></i>Recent Form Submissions</h5>
+              <div class="table-responsive">
+                <table class="custom-table" id="adminSubmissionsTable">
+                  <thead>
+                    <tr>
+                      <th>User</th>
+                      <th>Form Name</th>
+                      <th>Extracted Data</th>
+                      <th>Status</th>
+                      <th>Date</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- Loaded dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- User list -->
+          <div class="col-12 col-xl-4">
+            <div class="glass-panel p-4 h-100">
+              <h5 class="mb-4"><i class="fa-solid fa-user-gear me-2 text-accent"></i>Registered Users</h5>
+              <div class="table-responsive" style="max-height: 400px;">
+                <table class="custom-table" id="adminUsersTable">
+                  <thead>
+                    <tr>
+                      <th>Username</th>
+                      <th>Role</th>
+                      <th>Joined</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- Loaded dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 4: DOCUMENTS UPLOAD VIEW -->
+      <section class="view-section" id="documentsView">
+        <div class="row g-4 justify-content-center">
+          <!-- Upload Form -->
+          <div class="col-lg-8">
+            <div class="glass-panel p-4 mb-4">
+              <h5 class="mb-3"><i class="fa-solid fa-brain text-accent me-2"></i>1. Extract Profile Details (Text/Resume)</h5>
+              <p class="text-muted small">Upload your resume or profile text file. Our AI will automatically parse the document and extract your personal text details (Name, DOB, Skills, etc.) to update your profile variables.</p>
+              
+              <form id="docUploadForm" class="mt-3">
+                <div class="mb-3">
+                  <label for="docFile" class="form-label">Select Document (PDF or TXT)</label>
+                  <input class="form-control" type="file" id="docFile" accept=".pdf,.txt" required>
+                  <div class="form-text text-muted">Supports .pdf, .txt files up to 5MB. Extracts profile variables.</div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary-custom w-100 py-2" id="uploadDocBtn">
+                  <i class="fa-solid fa-wand-magic-sparkles me-2"></i>Analyze & Extract Details
+                </button>
+              </form>
+              
+              <!-- Loader Indicator -->
+              <div id="uploadLoader" class="text-center py-4 d-none">
+                <div class="spinner-border text-primary mb-3" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="text-accent mb-0"><i class="fa-solid fa-brain fa-spin me-2"></i>AI is parsing and extracting details...</p>
+              </div>
+
+              <!-- Success Alert -->
+              <div id="uploadSuccess" class="alert alert-success d-none mt-3" role="alert">
+                <i class="fa-solid fa-circle-check me-2"></i>Document uploaded and parsed successfully!
+              </div>
+            </div>
+
+            <div class="glass-panel p-4">
+              <h5 class="mb-3"><i class="fa-solid fa-file-pdf text-danger me-2"></i>2. Upload PDF Resume File (Form Attachment)</h5>
+              <p class="text-muted small">Upload your actual PDF resume file. This file will be stored on the server and will be automatically uploaded whenever you fill forms containing a file/resume field.</p>
+              
+              <form id="resumeUploadForm" class="mt-3">
+                <div class="mb-3">
+                  <label for="resumeFile" class="form-label">Select PDF Resume File</label>
+                  <input class="form-control" type="file" id="resumeFile" accept=".pdf" required>
+                  <div class="form-text text-muted">Only accepts .pdf. Does not modify your text fields.</div>
+                </div>
+                
+                <button type="submit" class="btn btn-danger w-100 py-2" id="uploadResumeBtn">
+                  <i class="fa-solid fa-cloud-arrow-up me-2"></i>Upload Resume PDF
+                </button>
+              </form>
+
+              <!-- Resume Loader Indicator -->
+              <div id="resumeUploadLoader" class="text-center py-4 d-none">
+                <div class="spinner-border text-danger mb-3" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="text-danger mb-0"><i class="fa-solid fa-spinner fa-spin me-2"></i>Uploading physical PDF resume...</p>
+              </div>
+
+              <!-- Resume Success Alert -->
+              <div id="resumeUploadSuccess" class="alert alert-success d-none mt-3" role="alert">
+                <i class="fa-solid fa-circle-check me-2"></i>PDF Resume file uploaded successfully!
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 5: VOICE INPUT VIEW -->
+      <section class="view-section" id="voiceView">
+        <div class="row g-4">
+          <!-- Voice Console Column -->
+          <div class="col-lg-6">
+            <div class="glass-panel p-4 h-100 text-center d-flex flex-column justify-content-center align-items-center">
+              <h5 class="mb-3 text-start w-100"><i class="fa-solid fa-microphone text-danger me-2"></i>Multilingual Voice Assistant</h5>
+              <p class="text-muted small text-start mb-4">Click the microphone to start speaking. Speak in Telugu, Hindi, Tamil, or English, and we will translate and fill your details automatically.</p>
+              
+              <!-- Large Mic Button -->
+              <div class="voice-mic-container my-4" style="position: relative;">
+                <button class="btn btn-danger-custom" id="voiceConsoleMicBtn" style="width: 100px; height: 100px; border-radius: 50%; font-size: 2.5rem; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                  <i class="fa-solid fa-microphone"></i>
+                </button>
+              </div>
+
+              <!-- Selector -->
+              <div class="mb-4 w-100 text-start">
+                <label for="voiceConsoleLangSelect" class="form-label text-muted small">Speak in Language:</label>
+                <select class="form-select bg-dark border-secondary text-white fw-bold" id="voiceConsoleLangSelect" style="border-radius: 8px;">
+                  <option value="en-US">English</option>
+                  <option value="te-IN">Telugu (తెలుగు)</option>
+                  <option value="hi-IN">Hindi (हिन्दी)</option>
+                  <option value="ta-IN">Tamil (தமிழ்)</option>
+                </select>
+              </div>
+
+              <!-- Status Card -->
+              <div class="voice-console-status-panel p-3 w-100 glass-panel text-start d-none" id="voiceConsoleStatusPanel" style="border-left: 4px solid var(--danger-color); animation: slideDown 0.3s ease-out;">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span id="voiceConsoleStatusText" class="text-accent small fw-bold"><i class="fa-solid fa-microphone fa-beat text-danger me-2"></i>Listening...</span>
+                  <span id="voiceConsoleConfidence" class="badge bg-secondary text-white font-monospace">Confidence: 0%</span>
+                </div>
+                
+                <div class="mb-2">
+                  <label class="text-muted small mb-1">Recognized Speech:</label>
+                  <input type="text" id="voiceConsoleRecognizedInput" class="form-control bg-dark border-secondary text-white py-1.5" style="border-radius: 6px;">
+                </div>
+
+                <div id="voiceConsoleTranslationWrapper" class="mb-2 d-none">
+                  <label class="text-muted small mb-1">Translated English Text:</label>
+                  <div id="voiceConsoleTranslationText" class="text-white small bg-dark p-2 border border-secondary" style="border-radius: 6px; font-style: italic;" contenteditable="true"></div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-3">
+                  <button class="btn btn-sm btn-outline-light" id="voiceConsoleCancelBtn"><i class="fa-solid fa-xmark me-1"></i>Cancel</button>
+                  <button class="btn btn-sm btn-primary-custom" id="voiceConsoleSendBtn"><i class="fa-solid fa-check me-1"></i>Confirm & Fill</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live checklist right panel -->
+          <div class="col-lg-6">
+            <div class="glass-panel p-4 h-100 d-flex flex-column">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0"><i class="fa-solid fa-list-check me-2 text-accent"></i>Voice Extraction Checklist</h5>
+                <span class="badge bg-success" id="voiceProgressPercentage">0% Completed</span>
+              </div>
+              <div class="progress-bar-container mb-3">
+                <div class="progress-fill" id="voiceProgressFillBar" style="width: 0%;"></div>
+              </div>
+              <div id="voiceFieldsPreviewContainer" style="flex: 1; overflow-y: auto; max-height: 400px; padding-right: 5px;">
+                <div class="text-center text-muted py-5">
+                  <i class="fa-solid fa-clipboard-question display-4 mb-3"></i>
+                  <p>No form selected. Go to the <b>Form Templates</b> tab and select a form to start voice-based form filling.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 6: MANUAL PROFILE EDITOR VIEW -->
+      <section class="view-section" id="manualView">
+        <div class="row g-4 justify-content-center">
+          <div class="col-lg-10">
+            <div class="glass-panel p-4">
+              <h5 class="mb-3"><i class="fa-solid fa-keyboard text-accent me-2"></i>Manual Entry Profile Editor</h5>
+              <p class="text-muted small mb-4">Edit your profile parameters manually. These details are stored in your database profile and used by the extension to auto-fill pages:</p>
+              
+              <div class="table-responsive">
+                <table class="custom-table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Profile Field</th>
+                      <th>Extracted Value</th>
+                    </tr>
+                  </thead>
+                  <tbody id="extractedFieldsBody">
+                    <tr>
+                      <td class="text-muted" style="width: 40%; vertical-align: middle;">Full Name</td>
+                      <td><input type="text" id="input-fullName" class="form-control form-control-sm bg-transparent border-0 text-white fw-bold py-1" style="box-shadow: none;" placeholder="Empty"></td>
+                    </tr>
+                    <tr>
+                      <td class="text-muted" style="vertical-align: middle;">Email</td>
+                      <td><input type="text" id="input-email" class="form-control form-control-sm bg-transparent border-0 text-white fw-bold py-1" style="box-shadow: none;" placeholder="Empty"></td>
+                    </tr>
+                    <tr>
+                      <td class="text-muted" style="vertical-align: middle;">Phone</td>
+                      <td><input type="text" id="input-phone" class="form-control form-control-sm bg-transparent border-0 text-white fw-bold py-1" style="box-shadow: none;" placeholder="Empty"></td>
+                    </tr>
+                    <tr>
+                      <td class="text-muted" style="vertical-align: middle;">Date of Birth</td>
+                      <td><input type="text" id="input-dob" class="form-control form-control-sm bg-transparent border-0 text-white fw-bold py-1" style="box-shadow: none;" placeholder="Empty"></td>
+                    </tr>
+                    <tr>
+                      <td class="text-muted" style="vertical-align: middle;">Gender</td>
+                      <td><input type="text" id="input-gender" class="form-control form-control-sm bg-transparent border-0 text-white fw-bold py-1" style="box-shadow: none;" placeholder="Empty"></td>
+                    </tr>
+                    <tr>
+                      <td class="text-muted" style="vertical-align: middle;">Course/Degree</td>
+                      <td><input type="text" id="input-course" class="form-control form-control-sm bg-transparent border-0 text-white fw-bold py-1" style="box-shadow: none;" placeholder="Empty"></td>
+                    </tr>
+                    <tr>
+                      <td class="text-muted" style="vertical-align: middle;">Applied Position</td>
+                      <td><input type="text" id="input-position" class="form-control form-control-sm bg-transparent border-0 text-white fw-bold py-1" style="box-shadow: none;" placeholder="Empty"></td>
+                    </tr>
+                    <tr>
+                      <td class="text-muted" style="vertical-align: middle;">Experience (Years)</td>
+                      <td><input type="text" id="input-experience" class="form-control form-control-sm bg-transparent border-0 text-white fw-bold py-1" style="box-shadow: none;" placeholder="Empty"></td>
+                    </tr>
+                    <tr>
+                      <td class="text-muted" style="vertical-align: middle;">Skills</td>
+                      <td><input type="text" id="input-skills" class="form-control form-control-sm bg-transparent border-0 text-white fw-bold py-1" style="box-shadow: none;" placeholder="Empty"></td>
+                    </tr>
+                    <tr>
+                      <td class="text-muted" style="vertical-align: middle;">Address</td>
+                      <td><input type="text" id="input-address" class="form-control form-control-sm bg-transparent border-0 text-white fw-bold py-1" style="box-shadow: none;" placeholder="Empty"></td>
+                    </tr>
+                    <tr>
+                      <td class="text-muted" style="vertical-align: middle;">Register Number</td>
+                      <td><input type="text" id="input-registerNumber" class="form-control form-control-sm bg-transparent border-0 text-white fw-bold py-1" style="box-shadow: none;" placeholder="Empty"></td>
+                    </tr>
+                    <tr>
+                      <td class="text-muted" style="vertical-align: middle;">College Name</td>
+                      <td><input type="text" id="input-collegeName" class="form-control form-control-sm bg-transparent border-0 text-white fw-bold py-1" style="box-shadow: none;" placeholder="Empty"></td>
+                    </tr>
+
+                    <tr>
+                      <td class="text-muted" style="vertical-align: middle;">Father's Name</td>
+                      <td><input type="text" id="input-fatherName" class="form-control form-control-sm bg-transparent border-0 text-white fw-bold py-1" style="box-shadow: none;" placeholder="Empty"></td>
+                    </tr>
+                    <tr>
+                      <td class="text-muted" style="vertical-align: middle;">Mother's Name</td>
+                      <td><input type="text" id="input-motherName" class="form-control form-control-sm bg-transparent border-0 text-white fw-bold py-1" style="box-shadow: none;" placeholder="Empty"></td>
+                    </tr>
+                    <tr>
+                      <td class="text-muted" style="vertical-align: middle;">Aadhar Number</td>
+                      <td><input type="text" id="input-aadharNumber" class="form-control form-control-sm bg-transparent border-0 text-white fw-bold py-1" style="box-shadow: none;" placeholder="Empty"></td>
+                    </tr>
+                    <tr>
+                      <td class="text-muted" style="vertical-align: middle;">Nationality</td>
+                      <td><input type="text" id="input-nationality" class="form-control form-control-sm bg-transparent border-0 text-white fw-bold py-1" style="box-shadow: none;" placeholder="Empty"></td>
+                    </tr>
+                    <tr>
+                      <td class="text-muted" style="vertical-align: middle;">Languages Known</td>
+                      <td><input type="text" id="input-languages" class="form-control form-control-sm bg-transparent border-0 text-white fw-bold py-1" style="box-shadow: none;" placeholder="Empty"></td>
+                    </tr>
+                    <tr>
+                      <td class="text-muted" style="vertical-align: middle;">Hobbies</td>
+                      <td><input type="text" id="input-hobbies" class="form-control form-control-sm bg-transparent border-0 text-white fw-bold py-1" style="box-shadow: none;" placeholder="Empty"></td>
+                    </tr>
+                    <tr>
+                      <td class="text-muted" style="vertical-align: middle;">Academic Projects</td>
+                      <td><input type="text" id="input-projects" class="form-control form-control-sm bg-transparent border-0 text-white fw-bold py-1" style="box-shadow: none;" placeholder="Empty"></td>
+                    </tr>
+                    <tr>
+                      <td class="text-muted" style="vertical-align: middle;">10th CGPA/Percentage</td>
+                      <td><input type="text" id="input-tenthPercentage" class="form-control form-control-sm bg-transparent border-0 text-white fw-bold py-1" style="box-shadow: none;" placeholder="Empty"></td>
+                    </tr>
+                    <tr>
+                      <td class="text-muted" style="vertical-align: middle;">10th Passing Year</td>
+                      <td><input type="text" id="input-tenthYear" class="form-control form-control-sm bg-transparent border-0 text-white fw-bold py-1" style="box-shadow: none;" placeholder="Empty"></td>
+                    </tr>
+                    <tr>
+                      <td class="text-muted" style="vertical-align: middle;">12th/Diploma %</td>
+                      <td><input type="text" id="input-twelfthPercentage" class="form-control form-control-sm bg-transparent border-0 text-white fw-bold py-1" style="box-shadow: none;" placeholder="Empty"></td>
+                    </tr>
+                    <tr>
+                      <td class="text-muted" style="vertical-align: middle;">12th Passing Year</td>
+                      <td><input type="text" id="input-twelfthYear" class="form-control form-control-sm bg-transparent border-0 text-white fw-bold py-1" style="box-shadow: none;" placeholder="Empty"></td>
+                    </tr>
+                    <tr>
+                      <td class="text-muted" style="vertical-align: middle;">Graduation CGPA/%</td>
+                      <td><input type="text" id="input-graduationCgpa" class="form-control form-control-sm bg-transparent border-0 text-white fw-bold py-1" style="box-shadow: none;" placeholder="Empty"></td>
+                    </tr>
+                    <tr>
+                      <td class="text-muted" style="vertical-align: middle;">Graduation Year</td>
+                      <td><input type="text" id="input-graduationYear" class="form-control form-control-sm bg-transparent border-0 text-white fw-bold py-1" style="box-shadow: none;" placeholder="Empty"></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <button id="saveProfileBtn" class="btn btn-primary-custom w-100 py-2.5 mt-3">
+                <i class="fa-solid fa-floppy-disk me-2"></i>Save Profile Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/chat.js"></script>
+  <script src="/js/voice.js"></script>
+  <script src="/js/admin.js"></script>
+  <script src="/js/documents.js"></script>
+</body>
+</html>
