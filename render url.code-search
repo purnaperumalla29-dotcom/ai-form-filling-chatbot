@@ -1,0 +1,50 @@
+# Query: localhost
+# ContextLines: 1
+
+10 results - 6 files
+
+db.js:
+  6  const {
+  7:   DB_HOST = 'localhost',
+  8    DB_PORT=3306,
+
+server.js:
+  424      // Resolve URL. Serving files from Express local server
+  425:     const targetUrl = `http://localhost:${PORT}${forms[0].form_url}`;
+  426  
+
+  838      console.log(`================================================================`);
+  839:     console.log(` AI FORM FILLING CHATBOT SERVER RUNNING AT: http://localhost:${PORT}`);
+  840      console.log(`================================================================`);
+
+verify_db.js:
+  32      console.error('2. Credentials in your .env file match your local server.');
+  33:     console.error('   Default credentials used: user="root", host="localhost", password=""');
+  34      console.error('====================================================');
+
+public\chrome-extension\content.js:
+   21        console.log(`[FormBot AI] Auto-filling enabled. Fetching profile for "${username}"...`);
+   22:       const response = await fetch(`http://https://ai-form-filling-chatbot.onrender.com/api/extension/data/${username}`);
+   23        if (!response.ok) {
+
+  339          try {
+  340:           const fileRes = await fetch('http://https://ai-form-filling-chatbot.onrender.com/uploads/resume.pdf');
+  341            if (fileRes.ok) {
+
+public\chrome-extension\manifest.json:
+  11    "host_permissions": [
+  12:     "http://localhost:3000/*"
+  13    ],
+
+public\chrome-extension\popup.js:
+   94      try {
+   95:       const response = await fetch(`http://https://ai-form-filling-chatbot.onrender.com/api/extension/data/${username}`);
+   96        if (!response.ok) {
+
+  304        try {
+  305:         const transResponse = await fetch('http://https://ai-form-filling-chatbot.onrender.com/api/translate', {
+  306            method: 'POST',
+
+  328        // Fetch extracted entities specifically matching those page fields
+  329:       const response = await fetch('http://https://ai-form-filling-chatbot.onrender.com/api/voice-extract', {
+  330          method: 'POST',
