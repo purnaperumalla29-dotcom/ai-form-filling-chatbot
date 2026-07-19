@@ -1,0 +1,31 @@
+# Query: localhost:3000
+# ContextLines: 1
+
+6 results - 3 files
+
+public\chrome-extension\content.js:
+   21        console.log(`[FormBot AI] Auto-filling enabled. Fetching profile for "${username}"...`);
+   22:       const response = await fetch(`http://https://ai-form-filling-chatbot.onrender.com/api/extension/data/${username}`);
+   23        if (!response.ok) {
+
+  339          try {
+  340:           const fileRes = await fetch('http://https://ai-form-filling-chatbot.onrender.com/uploads/resume.pdf');
+  341            if (fileRes.ok) {
+
+public\chrome-extension\manifest.json:
+  11    "host_permissions": [
+  12:     "http://https://ai-form-filling-chatbot.onrender.com/*"
+  13    ],
+
+public\chrome-extension\popup.js:
+   94      try {
+   95:       const response = await fetch(`http://https://ai-form-filling-chatbot.onrender.com/api/extension/data/${username}`);
+   96        if (!response.ok) {
+
+  304        try {
+  305:         const transResponse = await fetch('http://https://ai-form-filling-chatbot.onrender.com/api/translate', {
+  306            method: 'POST',
+
+  328        // Fetch extracted entities specifically matching those page fields
+  329:       const response = await fetch('http://https://ai-form-filling-chatbot.onrender.com/api/voice-extract', {
+  330          method: 'POST',

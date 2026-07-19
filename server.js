@@ -58,8 +58,8 @@ app.post('/api/auth/register', async (req, res) => {
 
   try {
     // Check if user already exists
-    const existingUsers = await db.query('SELECT * FROM Users WHERE username = ? OR email = ?', [username, email]);
-    if (existingUsers.length > 0) {
+    const existingusers = await db.query('SELECT * FROM users WHERE username = ? OR email = ?', [username, email]);
+    if (existingusers.length > 0) {
       return res.status(400).json({ error: 'Username or email already registered.' });
     }
 
@@ -68,12 +68,12 @@ app.post('/api/auth/register', async (req, res) => {
     const passwordHash = await bcrypt.hash(password, salt);
 
     // Default first user to admin, others to user
-    const userCountResult = await db.query('SELECT COUNT(*) AS count FROM Users');
+    const userCountResult = await db.query('SELECT COUNT(*) AS count FROM users');
     const role = userCountResult[0].count === 0 ? 'admin' : 'user';
 
     // Insert user
     const result = await db.query(
-      'INSERT INTO Users (username, email, password_hash, role) VALUES (?, ?, ?, ?)',
+      'INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)',
       [username, email, passwordHash, role]
     );
 
@@ -81,7 +81,7 @@ app.post('/api/auth/register', async (req, res) => {
 
     // Create admin record if admin role
     if (role === 'admin') {
-      await db.query('INSERT INTO Admin (user_id, permission_level) VALUES (?, ?)', [userId, 'superadmin']);
+      await db.query('INSERT INTO admin (user_id, permission_level) VALUES (?, ?)', [userId, 'superadmin']);
     }
 
     // Generate token
@@ -109,7 +109,7 @@ app.post('/api/auth/login', async (req, res) => {
 
   try {
     // Find user
-    const users = await db.query('SELECT * FROM Users WHERE email = ?', [email]);
+    const users = await db.query('SELECT * FROM users WHERE email = ?', [email]);
     if (users.length === 0) {
       return res.status(400).json({ error: 'Invalid email or password.' });
     }
@@ -144,15 +144,15 @@ app.post('/api/auth/login', async (req, res) => {
 // Get list of all forms
 app.get('/api/forms', authenticateToken, async (req, res) => {
   try {
-    const forms = await db.query('SELECT id, form_name, form_url, fields_schema FROM Forms');
+    const forms = await db.query('SELECT id, form_name, form_url, fields_schema FROM forms');
     
     // Parse fields_schema string to JSON objects
-    const parsedForms = forms.map(f => ({
+    const parsedforms = forms.map(f => ({
       ...f,
       fields_schema: JSON.parse(f.fields_schema)
     }));
 
-    res.json(parsedForms);
+    res.json(parsedforms);
   } catch (error) {
     console.error('Fetch forms error:', error.message);
     res.status(500).json({ error: 'Server error retrieving forms.' });
@@ -174,7 +174,7 @@ app.post('/api/chat', authenticateToken, async (req, res) => {
 
   try {
     // 1. Fetch the form schema
-    const forms = await db.query('SELECT form_name, fields_schema FROM Forms WHERE id = ?', [formId]);
+    const forms = await db.query('SELECT form_name, fields_schema FROM forms WHERE id = ?', [formId]);
     if (forms.length === 0) {
       return res.status(404).json({ error: 'Form template not found.' });
     }
@@ -184,16 +184,16 @@ app.post('/api/chat', authenticateToken, async (req, res) => {
     // 2. Fetch conversation history for this user & form
     // Limit to last 20 messages to keep context window clean
     const chatHistory = await db.query(
-      'SELECT sender, message FROM Chat_History WHERE user_id = ? ORDER BY timestamp ASC LIMIT 20',
+      'SELECT sender, message FROM chat_history WHERE user_id = ? ORDER BY timestamp ASC LIMIT 20',
       [userId]
     );
 
-    // 3. Save user's message to Chat_History
-    await db.query('INSERT INTO Chat_History (user_id, sender, message) VALUES (?, ?, ?)', [userId, 'user', message]);
+    // 3. Save user's message to chat_history
+    await db.query('INSERT INTO chat_history (user_id, sender, message) VALUES (?, ?, ?)', [userId, 'user', message]);
 
     // Fetch any previously extracted form data to inform chatbot
     const existingFormData = await db.query(
-      'SELECT id, extracted_json FROM Form_Data WHERE user_id = ? AND form_id = ?',
+      'SELECT id, extracted_json FROM form_data WHERE user_id = ? AND form_id = ?',
       [userId, formId]
     );
     const previouslyExtracted = existingFormData.length > 0 ? JSON.parse(existingFormData[0].extracted_json) : {};
@@ -207,20 +207,20 @@ app.post('/api/chat', authenticateToken, async (req, res) => {
     console.log(`[Chat API] Reply: "${aiResult.reply}"`);
     console.log(`--------------------------------------------------`);
 
-    // 5. Save bot's reply to Chat_History
-    await db.query('INSERT INTO Chat_History (user_id, sender, message) VALUES (?, ?, ?)', [userId, 'bot', aiResult.reply]);
+    // 5. Save bot's reply to chat_history
+    await db.query('INSERT INTO chat_history (user_id, sender, message) VALUES (?, ?, ?)', [userId, 'bot', aiResult.reply]);
 
-    // 6. Update Form_Data table with the accumulated extracted details
+    // 6. Update form_data table with the accumulated extracted details
     const updatedData = { ...previouslyExtracted, ...aiResult.extractedData };
 
     if (existingFormData.length > 0) {
       await db.query(
-        'UPDATE Form_Data SET extracted_json = ?, status = ? WHERE id = ?',
+        'UPDATE form_data SET extracted_json = ?, status = ? WHERE id = ?',
         [JSON.stringify(updatedData), 'pending', existingFormData[0].id]
       );
     } else {
       await db.query(
-        'INSERT INTO Form_Data (user_id, form_id, extracted_json, status) VALUES (?, ?, ?, ?)',
+        'INSERT INTO form_data (user_id, form_id, extracted_json, status) VALUES (?, ?, ?, ?)',
         [userId, formId, JSON.stringify(updatedData), 'pending']
       );
     }
@@ -248,11 +248,11 @@ app.post('/api/chat/clear', authenticateToken, async (req, res) => {
   const userId = req.user.id;
   const { formId } = req.body;
   try {
-    await db.query('DELETE FROM Chat_History WHERE user_id = ?', [userId]);
+    await db.query('DELETE FROM chat_history WHERE user_id = ?', [userId]);
     if (formId) {
-      await db.query('DELETE FROM Form_Data WHERE user_id = ? AND form_id = ?', [userId, formId]);
+      await db.query('DELETE FROM form_data WHERE user_id = ? AND form_id = ?', [userId, formId]);
     } else {
-      await db.query('DELETE FROM Form_Data WHERE user_id = ?', [userId]);
+      await db.query('DELETE FROM form_data WHERE user_id = ?', [userId]);
     }
     console.log(`[Chat API] Chat history and Form Data cleared for user session: ${userId}, form: ${formId || 'all'}`);
     res.json({ message: 'Chat history cleared successfully.' });
@@ -267,7 +267,7 @@ app.get('/api/chat/history', authenticateToken, async (req, res) => {
   const userId = req.user.id;
   try {
     const history = await db.query(
-      'SELECT sender, message FROM Chat_History WHERE user_id = ? ORDER BY timestamp ASC',
+      'SELECT sender, message FROM chat_history WHERE user_id = ? ORDER BY timestamp ASC',
       [userId]
     );
     res.json(history);
@@ -325,7 +325,7 @@ app.get('/api/forms/data/:formId', authenticateToken, async (req, res) => {
   const { formId } = req.params;
   try {
     const rows = await db.query(
-      'SELECT extracted_json FROM Form_Data WHERE user_id = ? AND form_id = ?',
+      'SELECT extracted_json FROM form_data WHERE user_id = ? AND form_id = ?',
       [userId, formId]
     );
     let data = {};
@@ -357,7 +357,7 @@ app.post('/api/forms/data', authenticateToken, async (req, res) => {
 
   try {
     const existing = await db.query(
-      'SELECT id, extracted_json FROM Form_Data WHERE user_id = ? AND form_id = ?',
+      'SELECT id, extracted_json FROM form_data WHERE user_id = ? AND form_id = ?',
       [userId, formId]
     );
 
@@ -374,12 +374,12 @@ app.post('/api/forms/data', authenticateToken, async (req, res) => {
 
     if (existing.length > 0) {
       await db.query(
-        'UPDATE Form_Data SET extracted_json = ? WHERE id = ?',
+        'UPDATE form_data SET extracted_json = ? WHERE id = ?',
         [JSON.stringify(data), existing[0].id]
       );
     } else {
       await db.query(
-        'INSERT INTO Form_Data (user_id, form_id, extracted_json) VALUES (?, ?, ?)',
+        'INSERT INTO form_data (user_id, form_id, extracted_json) VALUES (?, ?, ?)',
         [userId, formId, JSON.stringify(data)]
       );
     }
@@ -405,14 +405,14 @@ app.post('/api/forms/fill', authenticateToken, async (req, res) => {
 
   try {
     // 1. Fetch form url
-    const forms = await db.query('SELECT form_name, form_url FROM Forms WHERE id = ?', [formId]);
+    const forms = await db.query('SELECT form_name, form_url FROM forms WHERE id = ?', [formId]);
     if (forms.length === 0) {
       return res.status(404).json({ error: 'Form template not found.' });
     }
     
     // 2. Fetch the current extracted details
     const formDataEntries = await db.query(
-      'SELECT id, extracted_json FROM Form_Data WHERE user_id = ? AND form_id = ?',
+      'SELECT id, extracted_json FROM form_data WHERE user_id = ? AND form_id = ?',
       [userId, formId]
     );
 
@@ -427,7 +427,7 @@ app.post('/api/forms/fill', authenticateToken, async (req, res) => {
     const targetUrl = `http://localhost:${PORT}${forms[0].form_url}`;
 
     // 3. Update database status to filled
-    await db.query('UPDATE Form_Data SET status = ? WHERE id = ?', ['filled', formDataEntry.id]);
+    await db.query('UPDATE form_data SET status = ? WHERE id = ?', ['filled', formDataEntry.id]);
 
     // 4. Run Selenium Automation in the background
     // We launch it as an async task so the API response returns immediately (visual browser pops up in local server env)
@@ -437,10 +437,10 @@ app.post('/api/forms/fill', authenticateToken, async (req, res) => {
         await automation.autoFillForm(targetUrl, dataToFill);
         console.log(`[Selenium] Automation successfully finished filling form ${formId} for user ${userId}.`);
         // Optionally update status to 'submitted' if form is reviewed
-        await db.query('UPDATE Form_Data SET status = ? WHERE id = ?', ['submitted', formDataEntry.id]);
+        await db.query('UPDATE form_data SET status = ? WHERE id = ?', ['submitted', formDataEntry.id]);
       } catch (err) {
         console.error('[Selenium] Background execution failed:', err.message);
-        await db.query('UPDATE Form_Data SET status = ? WHERE id = ?', ['failed', formDataEntry.id]);
+        await db.query('UPDATE form_data SET status = ? WHERE id = ?', ['failed', formDataEntry.id]);
       }
     }, 500);
 
@@ -468,9 +468,9 @@ app.get('/api/reports/pdf/:formId', authenticateToken, async (req, res) => {
     // Get form data and form name
     const dataRows = await db.query(
       `SELECT fd.extracted_json, f.form_name, u.username, u.email 
-       FROM Form_Data fd 
-       JOIN Forms f ON fd.form_id = f.id
-       JOIN Users u ON fd.user_id = u.id
+       FROM form_data fd 
+       JOIN forms f ON fd.form_id = f.id
+       JOIN users u ON fd.user_id = u.id
        WHERE fd.user_id = ? AND fd.form_id = ?`,
       [userId, formId]
     );
@@ -540,11 +540,11 @@ app.post('/api/documents/upload', authenticateToken, upload.single('resume'), as
 
     console.log('[Document API] Extracted Data:', extractedData);
 
-    // Save extracted details for ALL forms (ID 1, 2, 3) in the Form_Data database
+    // Save extracted details for ALL forms (ID 1, 2, 3) in the form_data database
     const formIds = [1, 2, 3];
     for (const formId of formIds) {
       const existing = await db.query(
-        'SELECT id, extracted_json FROM Form_Data WHERE user_id = ? AND form_id = ?',
+        'SELECT id, extracted_json FROM form_data WHERE user_id = ? AND form_id = ?',
         [userId, formId]
       );
       
@@ -553,24 +553,24 @@ app.post('/api/documents/upload', authenticateToken, upload.single('resume'), as
         const previouslyExtracted = JSON.parse(existing[0].extracted_json);
         mergedData = { ...extractedData, ...previouslyExtracted };
         await db.query(
-          'UPDATE Form_Data SET extracted_json = ?, status = ? WHERE id = ?',
+          'UPDATE form_data SET extracted_json = ?, status = ? WHERE id = ?',
           [JSON.stringify(mergedData), 'pending', existing[0].id]
         );
       } else {
         await db.query(
-          'INSERT INTO Form_Data (user_id, form_id, extracted_json, status) VALUES (?, ?, ?, ?)',
+          'INSERT INTO form_data (user_id, form_id, extracted_json, status) VALUES (?, ?, ?, ?)',
           [userId, formId, JSON.stringify(mergedData), 'pending']
         );
       }
     }
 
-    // Insert an automated bot notification into Chat_History
+    // Insert an automated bot notification into chat_history
     let detailsString = Object.entries(extractedData)
       .map(([key, val]) => `<b>${key}</b>: ${val}`)
       .join(', ');
     
     const botMessage = `[Document Upload] I have successfully parsed your uploaded file <b>${req.file.originalname}</b> and updated your profile details: ${detailsString}`;
-    await db.query('INSERT INTO Chat_History (user_id, sender, message) VALUES (?, ?, ?)', [userId, 'bot', botMessage]);
+    await db.query('INSERT INTO chat_history (user_id, sender, message) VALUES (?, ?, ?)', [userId, 'bot', botMessage]);
 
     // Write physical file to public/uploads/resume.pdf
     const uploadsDir = path.join(__dirname, 'public', 'uploads');
@@ -629,7 +629,7 @@ app.post('/api/documents/upload-resume', authenticateToken, upload.single('resum
     const formIds = [1, 2, 3];
     for (const formId of formIds) {
       const existing = await db.query(
-        'SELECT id, extracted_json FROM Form_Data WHERE user_id = ? AND form_id = ?',
+        'SELECT id, extracted_json FROM form_data WHERE user_id = ? AND form_id = ?',
         [userId, formId]
       );
       
@@ -638,12 +638,12 @@ app.post('/api/documents/upload-resume', authenticateToken, upload.single('resum
         const previouslyExtracted = JSON.parse(existing[0].extracted_json);
         mergedData = { ...previouslyExtracted, resume: 'resume.pdf' };
         await db.query(
-          'UPDATE Form_Data SET extracted_json = ? WHERE id = ?',
+          'UPDATE form_data SET extracted_json = ? WHERE id = ?',
           [JSON.stringify(mergedData), existing[0].id]
         );
       } else {
         await db.query(
-          'INSERT INTO Form_Data (user_id, form_id, extracted_json, status) VALUES (?, ?, ?, ?)',
+          'INSERT INTO form_data (user_id, form_id, extracted_json, status) VALUES (?, ?, ?, ?)',
           [userId, formId, JSON.stringify(mergedData), 'pending']
         );
       }
@@ -670,7 +670,7 @@ app.post('/api/profile/save', authenticateToken, async (req, res) => {
     const formIds = [1, 2, 3];
     for (const formId of formIds) {
       const existing = await db.query(
-        'SELECT id, extracted_json FROM Form_Data WHERE user_id = ? AND form_id = ?',
+        'SELECT id, extracted_json FROM form_data WHERE user_id = ? AND form_id = ?',
         [userId, formId]
       );
       
@@ -679,12 +679,12 @@ app.post('/api/profile/save', authenticateToken, async (req, res) => {
         const previouslyExtracted = JSON.parse(existing[0].extracted_json);
         mergedData = { ...previouslyExtracted, ...profileData };
         await db.query(
-          'UPDATE Form_Data SET extracted_json = ? WHERE id = ?',
+          'UPDATE form_data SET extracted_json = ? WHERE id = ?',
           [JSON.stringify(mergedData), existing[0].id]
         );
       } else {
         await db.query(
-          'INSERT INTO Form_Data (user_id, form_id, extracted_json) VALUES (?, ?, ?)',
+          'INSERT INTO form_data (user_id, form_id, extracted_json) VALUES (?, ?, ?)',
           [userId, formId, JSON.stringify(mergedData)]
         );
       }
@@ -711,10 +711,10 @@ app.post('/api/profile/save', authenticateToken, async (req, res) => {
   }
 });
 
-// Download any user's form submission (Admin only)
+// Download any user's form submission (admin only)
 app.get('/api/admin/reports/pdf/:submissionId', authenticateToken, async (req, res) => {
   if (req.user.role !== 'admin') {
-    return res.status(403).json({ error: 'Access denied. Administrator privileges required.' });
+    return res.status(403).json({ error: 'Access denied. administrator privileges required.' });
   }
 
   const { submissionId } = req.params;
@@ -722,9 +722,9 @@ app.get('/api/admin/reports/pdf/:submissionId', authenticateToken, async (req, r
   try {
     const dataRows = await db.query(
       `SELECT fd.extracted_json, f.form_name, u.username, u.email 
-       FROM Form_Data fd 
-       JOIN Forms f ON fd.form_id = f.id
-       JOIN Users u ON fd.user_id = u.id
+       FROM form_data fd 
+       JOIN forms f ON fd.form_id = f.id
+       JOIN users u ON fd.user_id = u.id
        WHERE fd.id = ?`,
       [submissionId]
     );
@@ -742,38 +742,38 @@ app.get('/api/admin/reports/pdf/:submissionId', authenticateToken, async (req, r
     pdfGenerator.generateFormPDF(data, username, email, form_name, res);
 
   } catch (error) {
-    console.error('Admin PDF report error:', error.message);
+    console.error('admin PDF report error:', error.message);
     res.status(500).send('Server error generating report.');
   }
 });
 
 
 // -------------------------------------------------------------
-// Admin Panel Dashboard Routes
+// admin Panel Dashboard Routes
 // -------------------------------------------------------------
 
-// Fetch Admin Statistics
+// Fetch admin Statistics
 app.get('/api/admin/stats', authenticateToken, async (req, res) => {
   if (req.user.role !== 'admin') {
-    return res.status(403).json({ error: 'Access denied. Administrator privileges required.' });
+    return res.status(403).json({ error: 'Access denied. administrator privileges required.' });
   }
 
   try {
     // 1. Total count calculations
-    const usersCount = await db.query('SELECT COUNT(*) AS count FROM Users');
-    const formCount = await db.query('SELECT COUNT(*) AS count FROM Forms');
-    const submissionsCount = await db.query('SELECT COUNT(*) AS count FROM Form_Data');
-    const chatsCount = await db.query('SELECT COUNT(*) AS count FROM Chat_History');
+    const usersCount = await db.query('SELECT COUNT(*) AS count FROM users');
+    const formCount = await db.query('SELECT COUNT(*) AS count FROM forms');
+    const submissionsCount = await db.query('SELECT COUNT(*) AS count FROM form_data');
+    const chatsCount = await db.query('SELECT COUNT(*) AS count FROM chat_history');
 
     // 2. Fetch all registered users
-    const allUsers = await db.query('SELECT id, username, email, role, created_at FROM Users ORDER BY created_at DESC');
+    const allusers = await db.query('SELECT id, username, email, role, created_at FROM users ORDER BY created_at DESC');
 
     // 3. Fetch recent submissions list
     const submissions = await db.query(`
       SELECT fd.id, fd.status, fd.created_at, u.username, f.form_name, fd.extracted_json, fd.form_id
-      FROM Form_Data fd
-      JOIN Users u ON fd.user_id = u.id
-      JOIN Forms f ON fd.form_id = f.id
+      FROM form_data fd
+      JOIN users u ON fd.user_id = u.id
+      JOIN forms f ON fd.form_id = f.id
       ORDER BY fd.created_at DESC LIMIT 15
     `);
 
@@ -784,17 +784,17 @@ app.get('/api/admin/stats', authenticateToken, async (req, res) => {
 
     res.json({
       stats: {
-        totalUsers: usersCount[0].count,
-        totalForms: formCount[0].count,
+        totalusers: usersCount[0].count,
+        totalforms: formCount[0].count,
         totalSubmissions: submissionsCount[0].count,
         totalMessages: chatsCount[0].count
       },
-      users: allUsers,
+      users: allusers,
       submissions: parsedSubmissions
     });
 
   } catch (error) {
-    console.error('Admin stats error:', error.message);
+    console.error('admin stats error:', error.message);
     res.status(500).json({ error: 'Server error fetching admin statistics.' });
   }
 });
@@ -803,7 +803,7 @@ app.get('/api/admin/stats', authenticateToken, async (req, res) => {
 app.get('/api/extension/data/:username', async (req, res) => {
   const { username } = req.params;
   try {
-    const userRows = await db.query('SELECT id FROM Users WHERE username = ?', [username]);
+    const userRows = await db.query('SELECT id FROM users WHERE username = ?', [username]);
     if (userRows.length === 0) {
       return res.status(404).json({ error: 'User not found.' });
     }
@@ -811,7 +811,7 @@ app.get('/api/extension/data/:username', async (req, res) => {
     
     // Get latest form data
     const dataRows = await db.query(
-      'SELECT extracted_json FROM Form_Data WHERE user_id = ? ORDER BY created_at DESC LIMIT 1',
+      'SELECT extracted_json FROM form_data WHERE user_id = ? ORDER BY created_at DESC LIMIT 1',
       [userId]
     );
     
