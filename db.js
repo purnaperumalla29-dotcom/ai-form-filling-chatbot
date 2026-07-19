@@ -5,6 +5,7 @@ require('dotenv').config();
 
 const {
   DB_HOST = 'localhost',
+  DB_PORT=3306,
   DB_USER = 'root',
   DB_PASSWORD = '',
   DB_NAME = 'ai_form_filler'
@@ -18,6 +19,7 @@ async function initializeDatabase() {
     console.log(`Connecting to MySQL server at ${DB_HOST} as ${DB_USER}...`);
     const tempConnection = await mysql.createConnection({
       host: DB_HOST,
+      port: DB_PORT,
       user: DB_USER,
       password: DB_PASSWORD,
       multipleStatements: true
@@ -30,6 +32,7 @@ async function initializeDatabase() {
     // 2. Initialize connection pool with database selected
     pool = mysql.createPool({
       host: DB_HOST,
+      port: DB_PORT,
       user: DB_USER,
       password: DB_PASSWORD,
       database: DB_NAME,
