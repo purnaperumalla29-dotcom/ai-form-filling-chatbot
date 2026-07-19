@@ -9,6 +9,7 @@ const pdfGenerator = require('./pdfGenerator');
 const multer = require('multer');
 const { PDFParse } = require('pdf-parse');
 const fs = require('fs');
+const cors = require('cors');
 require('dotenv').config();
 
 const upload = multer({
@@ -17,6 +18,7 @@ const upload = multer({
 });
 
 const app = express();
+app.use(cors());
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecret_formfiller_token_12345';
 
