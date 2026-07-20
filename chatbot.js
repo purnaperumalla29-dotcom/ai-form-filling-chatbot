@@ -1101,7 +1101,6 @@ else if (lowerField.includes('faculty')) {
     dynamicEntities[field] = facultyMatch[1].trim();
     dynamicConfidence[field] = 95;
   }
-}
       } else if (lowerField.includes('position') || lowerField.includes('role') || lowerField.includes('applied')) {
         dynamicEntities[field] = entities.position;
         dynamicConfidence[field] = confidence.position;
