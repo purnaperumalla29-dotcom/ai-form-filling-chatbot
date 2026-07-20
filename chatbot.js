@@ -759,13 +759,13 @@ async function extractEntitiesFromVoice(text, fields = null) {
       fullName: null, email: null, phone: null, address: null, dob: null,
       gender: null, collegeName: null, degree: null, skills: null,
       experience: null, companyName: null, city: null, country: null,
-      registerNumber: null, position: null
+      registerNumber: null, position: null, department: null, yearOfStudy: null, facultyName: null
     },
     confidence: {
       fullName: 0, email: 0, phone: 0, address: 0, dob: 0,
       gender: 0, collegeName: 0, degree: 0, skills: 0,
       experience: 0, companyName: 0, city: 0, country: 0,
-      registerNumber: 0, position: 0
+      registerNumber: 0, position: 0, department: 0, yearOfStudy: 0, facultyName: 0
     }
   };
 
@@ -816,6 +816,10 @@ Extract the following fields. If a field is not mentioned, set it to null:
 - country
 - registerNumber (string)
 - position (string)
+- department
+- yearOfStudy
+- facultyName
+
 
 Also assign a confidence score (integer 0 to 100) to each extracted field depending on how explicitly it was stated (e.g. 95 for exact, 50 for ambiguous, 0 for missing/empty).
 
@@ -961,6 +965,26 @@ Output strictly as a JSON object with this format:
 
   // Degree match
   const degreeWords = ['mca', 'btech', 'bca', 'bsc', 'mba', 'mtech', 'phd', 'bachelor', 'master'];
+  // Department
+const deptMatch = text.match(/(?:department|dept)\s*(?:is)?\s*([a-zA-Z\s&]+)/i);
+if (deptMatch) {
+  entities.department = deptMatch[1].trim();
+  confidence.department = 95;
+}
+
+// Year of Study
+const yearMatch = text.match(/(?:year of study|study year|year)\s*(?:is)?\s*([a-zA-Z0-9\s]+)/i);
+if (yearMatch) {
+  entities.yearOfStudy = yearMatch[1].trim();
+  confidence.yearOfStudy = 95;
+}
+
+// Faculty Name
+const facultyMatch = text.match(/(?:faculty|mentor|teacher)\s*(?:is)?\s*([a-zA-Z\s.]+)/i);
+if (facultyMatch) {
+  entities.facultyName = facultyMatch[1].trim();
+  confidence.facultyName = 95;
+}
   for (const word of degreeWords) {
     if (lowerText.includes(word)) {
       entities.degree = word.toUpperCase();
@@ -1054,6 +1078,29 @@ Output strictly as a JSON object with this format:
       } else if (lowerField.includes('degree') || lowerField.includes('course') || lowerField.includes('branch')) {
         dynamicEntities[field] = entities.degree;
         dynamicConfidence[field] = confidence.degree;
+        else if (lowerField.includes('department') || lowerField.includes('dept')) {
+  const deptMatch = normalizedText.match(/(?:department|dept)\s*(?:is)?\s*([a-zA-Z\s&]+)/i);
+  if (deptMatch) {
+    dynamicEntities[field] = deptMatch[1].trim();
+    dynamicConfidence[field] = 95;
+  }
+}
+
+else if (lowerField.includes('year of study') || lowerField.includes('study year') || lowerField.includes('year')) {
+  const yearMatch = normalizedText.match(/(?:year of study|study year|year)\s*(?:is)?\s*([a-zA-Z0-9\s]+)/i);
+  if (yearMatch) {
+    dynamicEntities[field] = yearMatch[1].trim();
+    dynamicConfidence[field] = 95;
+  }
+}
+
+else if (lowerField.includes('faculty')) {
+  const facultyMatch = normalizedText.match(/(?:faculty|mentor|teacher)\s*(?:is)?\s*([a-zA-Z\s.]+)/i);
+  if (facultyMatch) {
+    dynamicEntities[field] = facultyMatch[1].trim();
+    dynamicConfidence[field] = 95;
+  }
+}
       } else if (lowerField.includes('position') || lowerField.includes('role') || lowerField.includes('applied')) {
         dynamicEntities[field] = entities.position;
         dynamicConfidence[field] = confidence.position;

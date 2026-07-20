@@ -19,7 +19,7 @@
 
     try {
       console.log(`[FormBot AI] Auto-filling enabled. Fetching profile for "${username}"...`);
-      const response = await fetch(`http://localhost:3000/api/extension/data/${username}`);
+      const response = await fetch(`https://ai-form-filling-chatbot.onrender.com/api/extension/data/${username}`);
       if (!response.ok) {
         throw new Error('Local server unreachable or user not found.');
       }
@@ -100,6 +100,7 @@
 
       // Combine all identifiers for matching
       const searchContext = `${name} ${id} ${placeholder} ${ariaLabel} ${ariaLabelledByText} ${labelText} ${parentLabelText}`;
+      console.log("Label:", searchContext);
 
       // Helper check
       const matches = (keyword) => searchContext.includes(keyword);
@@ -337,7 +338,7 @@
       // 27. File Input Upload check (maps your saved PDF resume)
       else if (input.type === 'file') {
         try {
-          const fileRes = await fetch('http://localhost:3000/uploads/resume.pdf');
+          const fileRes = await fetch("https://ai-form-filling-chatbot.onrender.com/uploads/resume.pdf");
           if (fileRes.ok) {
             const blob = await fileRes.blob();
             const file = new File([blob], "resume.pdf", { type: "application/pdf" });
@@ -394,5 +395,5 @@
     element.dispatchEvent(new Event('input', { bubbles: true }));
     element.dispatchEvent(new Event('change', { bubbles: true }));
   }
-}
+
 })();

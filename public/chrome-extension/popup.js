@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
     statusText.style.color = '#94a3b8';
 
     try {
-      const response = await fetch(`http://localhost:3000/api/extension/data/${username}`);
+      const response = await fetch(`https://ai-form-filling-chatbot.onrender.com/api/extension/data/${username}`);
       if (!response.ok) {
         throw new Error('Profile not found or server offline.');
       }
@@ -302,7 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (selectedLang !== 'en-US') {
       transcriptBox.innerHTML = '<span style="color: #f59e0b;"><i class="fa-solid fa-spinner fa-spin me-2"></i>Translating speech to English...</span>';
       try {
-        const transResponse = await fetch('http://localhost:3000/api/translate', {
+        const transResponse = await fetch('https://ai-form-filling-chatbot.onrender.com/api/translate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text, sourceLang: selectedLang })
@@ -326,7 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const fieldsList = detectedPageFields.map(f => f.label);
 
       // Fetch extracted entities specifically matching those page fields
-      const response = await fetch('http://localhost:3000/api/voice-extract', {
+      const response = await fetch('https://ai-form-filling-chatbot.onrender.com/api/voice-extract', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text, fields: fieldsList })
@@ -447,14 +447,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const synonymsMap = {
       fullName: ['fullname', 'name', 'fname', 'username', 'candidate', 'studentname', 'nameofthecandidate', 'candidatefullname'],
-      registerNumber: ['registernumber', 'regno', 'rollnumber', 'rollno', 'register', 'roll', 'reg'],
-      email: ['email', 'emailid', 'mail', 'emailaddress'],
-      phone: ['phone', 'mobile', 'tel', 'contact', 'phonenumber', 'mobilenumber', 'contactnumber'],
+      registerNumber: ['registernumber', 'registrationnumber', 'registration', 'regno', 'reg no', 'rollnumber', 'rollno', 'roll no', 'register', 'roll', 'reg', 'studentid', 'student id', 'enrollmentnumber', 'enrolmentnumber', 'admissionnumber'],
+      email: ['email', 'emailid', 'mail', 'e-mail', 'officialemail', 'personalemail', 'emailaddress'],
+      phone: ['phone', 'mobile', 'tel', 'contact', 'phonenumber', 'mobilenumber', 'contactnumber', 'telephone', 'whatsapp', 'whatsappnumber'],
       address: ['address', 'location', 'street', 'residence'],
-      dob: ['dob', 'dateofbirth', 'birthdate', 'birth'],
+      dob: ['dob', 'dateofbirth', 'birthdate', 'birth', 'datebirth', 'birthdt'],
       gender: ['gender', 'sex'],
-      collegeName: ['collegename', 'college', 'university', 'school', 'institute', 'institution'],
-      degree: ['degree', 'course', 'branch', 'qualification', 'study'],
+      collegeName: ['collegename', 'college', 'collegename', 'university', 'university name', 'academy','school', 'institute', 'institute name', 'institution', 'institution name'],
+      degree: ['degree', 'course', 'branch', 'department', 'dept', 'stream', 'program', 'programme', 'major', 'specialization', 'specialisation', 'qualification', 'study', 'fieldofstudy'],
       skills: ['skills', 'tech', 'technicalskills', 'technologies'],
       experience: ['experience', 'exp', 'years'],
       companyName: ['companyname', 'company', 'employer', 'workplace'],
