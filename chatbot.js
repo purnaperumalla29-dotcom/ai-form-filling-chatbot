@@ -1078,6 +1078,7 @@ if (facultyMatch) {
       } else if (lowerField.includes('degree') || lowerField.includes('course') || lowerField.includes('branch')) {
         dynamicEntities[field] = entities.degree;
         dynamicConfidence[field] = confidence.degree;
+      }
         else if (lowerField.includes('department') || lowerField.includes('dept')) {
   const deptMatch = normalizedText.match(/(?:department|dept)\s*(?:is)?\s*([a-zA-Z\s&]+)/i);
   if (deptMatch) {
