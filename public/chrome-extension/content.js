@@ -53,7 +53,38 @@
       console.warn('[FormBot AI] Auto-fill failed:', err.message);
     }
   });
+const FIELD_KEYWORDS = {
+  fullName: [
+    "name",
+    "full name",
+    "fullname",
+    "first name",
+    "last name",
+    "given name",
+    "surname",
+    "family name",
+    "username"
+  ],
 
+  email: [
+    "email",
+    "e-mail",
+    "mail",
+    "email address"
+  ],
+
+  phone: [
+    "phone",
+    "mobile",
+    "cell",
+    "cell phone",
+    "telephone",
+    "contact",
+    "contact number",
+    "mobile number",
+    "phone number"
+  ]
+};
   // Reusable fill logic matching popup.js
   function fillFormOnPage(data) {
     const inputs = document.querySelectorAll('input, select, textarea');
@@ -104,6 +135,13 @@
 
       // Helper check
       const matches = (keyword) => searchContext.includes(keyword);
+
+const matchesField = (fieldName) => {
+  const keywords = FIELD_KEYWORDS[fieldName] || [];
+  return keywords.some(keyword =>
+    searchContext.includes(keyword.toLowerCase())
+  );
+};
 
       // 1. Full Name check
       if (data.fullName && (matches('name') || matches('fullname') || matches('username')) 

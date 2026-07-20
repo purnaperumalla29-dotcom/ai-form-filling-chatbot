@@ -748,7 +748,29 @@ function normalizeSpokenText(textSpoken) {
   
   return normalized;
 }
+const FIELD_SYNONYMS = {
+  fullName: ["name", "full name", "candidate name"],
+  email: ["email", "email id", "mail"],
+  phone: ["phone", "mobile", "mobile number", "contact", "contact number"],
+  collegeName: ["college", "college name", "institution", "university"],
+  department: ["department", "dept", "branch"],
+  degree: ["degree", "course", "qualification"],
+  yearOfStudy: ["year", "year of study", "study year"],
+  facultyName: ["faculty", "mentor", "teacher", "guide"],
+  registerNumber: ["register number", "register no", "roll number", "student id"],
+  address: ["address", "location", "residence"],
+  position: ["position", "job", "role"],
+  skills: ["skills", "technical skills"],
+  experience: ["experience", "work experience"]
+};
+function cleanExtractedValue(value) {
+  if (!value) return null;
 
+  return value
+    .replace(/\b(name|email|phone|mobile|register|roll|college|department|faculty|mentor|teacher|year|semester|degree|course|address|position|job|gender)\b.*$/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 /**
  * Extracts structured entities from spoken voice transcript.
  * Supports Name, Email, Mobile, Address, DOB, Gender, College, Degree, Skills, Experience, Company, City, Country.
@@ -850,9 +872,44 @@ Output strictly as a JSON object with this format:
   // Regex and heuristic parsing fallback
   const entities = { ...defaultResponse.entities };
   const confidence = { ...defaultResponse.confidence };
+  // Add dynamic fields from Google Form
+if (fields && Array.isArray(fields)) {
+  fields.forEach(field => {
+    const key = field
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '');
+
+    if (!(key in entities)) {
+      entities[key] = null;
+      confidence[key] = 0;
+    }
+  });
+}
   
   const normalizedText = normalizeSpokenText(text);
   const lowerText = normalizedText;
+  // Dynamic extraction based on Google Form field names
+if (fields && Array.isArray(fields)) {
+  fields.forEach(field => {
+    const key = field.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+    // Skip if already extracted
+    if (entities[key]) return;
+
+    const regex = new RegExp(
+      field.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') +
+      "\\s*(?:is|:)?\\s*([a-zA-Z0-9@.,\\-\\s]+)",
+      "i"
+    );
+
+    const match = text.match(regex);
+
+    if (match) {
+      entities[key] = match[1].trim();
+      confidence[key] = 90;
+    }
+  });
+}
 
   // Email (supports space-separated addresses e.g. "Jyoti perumalla 29@gmail.com")
   // First attempt keyword-based extraction to prevent swallowing preceding name/text
@@ -959,7 +1016,7 @@ Output strictly as a JSON object with this format:
   const collegeMatch = text.match(/(?:college name is|studying at|student of)\s*([a-zA-Z\s.()]+)/i) ||
                        text.match(/\b([a-zA-Z\s.()]+?)\s+(?:college|university|department|dept|degree|course)\b/i);
   if (collegeMatch) {
-    entities.collegeName = collegeMatch[1].trim().split(/\b(?:degree|my|and|in|at|live|register|roll|email|phone|mobile|is|was|am|department|dept|year|study|faculty|mentor|teacher)\b/i)[0].trim();
+    entities.collegeName = cleanExtractedValue(collegeMatch[1]);
     confidence.collegeName = 90;
   }
 
@@ -968,21 +1025,21 @@ Output strictly as a JSON object with this format:
   // Department
 const deptMatch = text.match(/(?:department|dept)\s*(?:is)?\s*([a-zA-Z\s&]+)/i);
 if (deptMatch) {
-  entities.department = deptMatch[1].trim();
+  entities.department = cleanExtractedValue(deptMatch[1]);
   confidence.department = 95;
 }
 
 // Year of Study
 const yearMatch = text.match(/(?:year of study|study year|year)\s*(?:is)?\s*([a-zA-Z0-9\s]+)/i);
 if (yearMatch) {
-  entities.yearOfStudy = yearMatch[1].trim();
+  entities.yearOfStudy = cleanExtractedValue(yearMatch[1]);
   confidence.yearOfStudy = 95;
 }
 
 // Faculty Name
 const facultyMatch = text.match(/(?:faculty|mentor|teacher)\s*(?:is)?\s*([a-zA-Z\s.]+)/i);
 if (facultyMatch) {
-  entities.facultyName = facultyMatch[1].trim();
+  entities.facultyName = cleanExtractedMatch(facultyMatch[1]);
   confidence.facultyName = 95;
 }
   for (const word of degreeWords) {
@@ -1101,6 +1158,7 @@ else if (lowerField.includes('faculty')) {
     dynamicEntities[field] = facultyMatch[1].trim();
     dynamicConfidence[field] = 95;
   }
+
       } else if (lowerField.includes('position') || lowerField.includes('role') || lowerField.includes('applied')) {
         dynamicEntities[field] = entities.position;
         dynamicConfidence[field] = confidence.position;

@@ -122,6 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const activeText = (finalTranscript + interimTranscript).trim();
+      console.log("VOICE:", activeText);
       if (activeText) {
         recognizedInputs.forEach(i => { if (i) i.value = activeText; });
       }
@@ -255,6 +256,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       chatInput.value = finalPayloadText;
+      console.log("VOICE TRANSCRIPT:", finalPayloadText);
+
+window.latestVoiceTranscript = finalPayloadText;s
       statusPanels.forEach(p => { if (p) p.classList.add('d-none'); });
       
       if (typeof window.handleSendMessage === 'function') {
