@@ -9,16 +9,10 @@
     "storage"
   ],
   "host_permissions": [
-    "http://localhost:3000/*"
+     "http://localhost:3000/*",
+     "https://ai-form-filling-chatbot.onrender.com/*"
   ],
   "action": {
     "default_popup": "popup.html"
-  },
-  "content_scripts": [
-    {
-      "matches": ["http://*/*", "https://*/*"],
-      "js": ["content.js"],
-      "run_at": "document_idle"
-    }
-  ]
+  }
 }

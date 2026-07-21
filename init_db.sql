@@ -62,3 +62,5 @@ INSERT INTO forms (id, form_name, form_url, fields_schema) VALUES
 (3, 'Customer Feedback Form', '/forms/feedback.html', 
 '[{"name":"fullName","label":"Full Name","type":"text","required":true},{"name":"email","label":"Email Address","type":"email","required":true},{"name":"rating","label":"Service Rating","type":"select","options":["Excellent","Good","Average","Poor"],"required":true},{"name":"comments","label":"Feedback Comments","type":"textarea","required":true},{"name":"recommend","label":"Recommend to Others","type":"radio","options":["Yes","No"],"required":true}]')
 ON DUPLICATE KEY UPDATE form_name=VALUES(form_name), form_url=VALUES(form_url), fields_schema=VALUES(fields_schema);
+SHOW TABLES;
+SELECT * FROM users;
